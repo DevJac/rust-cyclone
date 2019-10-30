@@ -23,7 +23,7 @@ impl<T: Float> Vec3<T> {
 
     pub fn norm(self) -> Self {
         let mag = self.mag();
-        if mag == T::zero() {
+        if mag.is_zero() {
             self
         } else {
             self / mag
@@ -46,7 +46,7 @@ impl<T: Float> Vec3<T> {
         let a = self;
         let b = other;
         let c = a.norm().cross(b).norm();
-        if c.mag() == T::zero() {
+        if c.mag().is_zero() {
             None
         } else {
             Some((a, c.cross(a), c))
