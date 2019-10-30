@@ -1,5 +1,6 @@
 use num::Float;
-use std::ops::{Add, Div, Mul, Sub};
+use num_traits::NumAssign;
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 // We may want to derive an Eq implementation for Vec3,
 // but we don't have a reason to (for now). It is better
@@ -7,7 +8,7 @@ use std::ops::{Add, Div, Mul, Sub};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vec3<T: Float>(pub T, pub T, pub T);
 
-impl<T: Float> Vec3<T> {
+impl<T: Float + NumAssign> Vec3<T> {
     pub fn invert(self) -> Self {
         Self(-self.0, -self.1, -self.2)
     }
@@ -35,7 +36,7 @@ impl<T: Float> Vec3<T> {
     }
 
     pub fn cross(self, other: Self) -> Self {
-        Vec3(
+        Self(
             self.1 * other.2 - self.2 * other.1,
             self.2 * other.0 - self.0 * other.2,
             self.0 * other.1 - self.1 * other.0,
@@ -62,11 +63,27 @@ impl<T: Float> Add for Vec3<T> {
     }
 }
 
+impl<T: Float + NumAssign> AddAssign for Vec3<T> {
+    fn add_assign(&mut self, other: Self) {
+        self.0 += other.0;
+        self.1 += other.1;
+        self.2 += other.2;
+    }
+}
+
 impl<T: Float> Sub for Vec3<T> {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
         Self(self.0 - other.0, self.1 - other.1, self.2 - other.2)
+    }
+}
+
+impl<T: Float + NumAssign> SubAssign for Vec3<T> {
+    fn sub_assign(&mut self, other: Self) {
+        self.0 -= other.0;
+        self.1 -= other.1;
+        self.2 -= other.2;
     }
 }
 
@@ -85,6 +102,14 @@ impl<T: Float> Mul for Vec3<T> {
     }
 }
 
+impl<T: Float + NumAssign> MulAssign for Vec3<T> {
+    fn mul_assign(&mut self, other: Self) {
+        self.0 *= other.0;
+        self.1 *= other.1;
+        self.2 *= other.2;
+    }
+}
+
 impl<T: Float> Mul<T> for Vec3<T> {
     type Output = Self;
 
@@ -93,11 +118,27 @@ impl<T: Float> Mul<T> for Vec3<T> {
     }
 }
 
+impl<T: Float + NumAssign> MulAssign<T> for Vec3<T> {
+    fn mul_assign(&mut self, other: T) {
+        self.0 *= other;
+        self.1 *= other;
+        self.2 *= other;
+    }
+}
+
 impl<T: Float> Div<T> for Vec3<T> {
     type Output = Self;
 
     fn div(self, other: T) -> Self {
         Self(self.0 / other, self.1 / other, self.2 / other)
+    }
+}
+
+impl<T: Float + NumAssign> DivAssign<T> for Vec3<T> {
+    fn div_assign(&mut self, other: T) {
+        self.0 /= other;
+        self.1 /= other;
+        self.2 /= other;
     }
 }
 
@@ -158,5 +199,31 @@ mod tests {
         assert_eq!(basis_y, Vec3(0.0, 1.0, 0.0));
         assert_eq!(basis_z, Vec3(0.0, 0.0, 1.0));
         assert_eq!(a.basis(a), None);
+    }
+
+    #[test]
+    fn ops() {
+        let a = Vec3(1.0, 1.0, 1.0);
+        let b = Vec3(0.0, 1.0, 2.0);
+        assert_eq!(a + b, Vec3(1.0, 2.0, 3.0));
+        assert_eq!(a - b, Vec3(1.0, 0.0, -1.0));
+        assert_eq!(a * b, Vec3(0.0, 1.0, 2.0));
+        assert_eq!(a * 2.0, Vec3(2.0, 2.0, 2.0));
+        assert_eq!(a / 2.0, Vec3(0.5, 0.5, 0.5));
+        let mut add = a;
+        let mut sub = a;
+        let mut mul = a;
+        let mut scale = a;
+        let mut div = a;
+        add += b;
+        sub -= b;
+        mul *= b;
+        scale *= 2.0;
+        div /= 2.0;
+        assert_eq!(add, Vec3(1.0, 2.0, 3.0));
+        assert_eq!(sub, Vec3(1.0, 0.0, -1.0));
+        assert_eq!(mul, Vec3(0.0, 1.0, 2.0));
+        assert_eq!(scale, Vec3(2.0, 2.0, 2.0));
+        assert_eq!(div, Vec3(0.5, 0.5, 0.5));
     }
 }
