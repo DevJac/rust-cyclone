@@ -7,4 +7,5 @@
     rustdoc,
     unused
 )]
+pub mod particle;
 pub mod vec;
